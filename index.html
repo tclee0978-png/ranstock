@@ -6,148 +6,299 @@
     <title>然然贏家 Pro • 煥然專屬</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body { font-family: "Microsoft JhengHei", system-ui, sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #c5a05b; border-radius: 3px; }
+        .stock-item { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .stock-item:hover { transform: translateX(4px); box-shadow: 0 10px 15px -3px rgb(197 160 91 / 0.3); }
+        .bubble { animation: bubblePop 0.4s ease forwards; }
+        @keyframes bubblePop { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .animate-shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        .filter-chip { transition: all 0.2s ease; }
+        .filter-chip:hover { background: #25253a; }
+        .modal-backdrop { animation: fadeIn 0.2s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
 </head>
 <body class="bg-[#0a0a0a] text-white font-sans overflow-hidden">
+    <!-- HEADER -->
     <header class="border-b border-[#c5a05b] bg-gradient-to-r from-[#0a0a0a] to-[#1a1a2e] px-6 py-4 flex items-center justify-between">
-        <section class="flex items-center gap-3">
-            <span class="w-10 h-10 bg-gradient-to-br from-[#c5a05b] to-[#3b82f6] rounded-2xl flex items-center justify-center text-2xl shadow-lg shadow-[#c5a05b]/50">🏎️</span>
-            <section>
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-[#c5a05b] to-[#3b82f6] rounded-2xl flex items-center justify-center text-2xl shadow-lg shadow-[#c5a05b]/50">🏎️</div>
+            <div>
                 <h1 class="text-3xl font-bold tracking-tighter bg-gradient-to-r from-[#c5a05b] to-[#3b82f6] bg-clip-text text-transparent">然然贏家 Pro</h1>
                 <p class="text-[#c5a05b] text-sm -mt-1">李煥然專屬 • 高勝率紀律系統</p>
-            </section>
-        </section>
-        <section class="flex items-center gap-8">
-            <section id="market-status" class="flex items-center gap-2 bg-[#1a1a2e] px-5 py-2 rounded-3xl border border-[#c5a05b]/30">
-                <span id="market-dot" class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
+            </div>
+        </div>
+        <div class="flex items-center gap-8">
+            <div id="market-status" class="flex items-center gap-2 bg-[#1a1a2e] px-5 py-2 rounded-3xl border border-[#c5a05b]/30">
+                <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
                 <span id="market-label" class="text-lg font-medium">盤後模式</span>
                 <span id="current-time" class="text-[#c5a05b] text-sm font-mono"></span>
-            </section>
-            <section class="flex items-center gap-3">
-                <span class="w-9 h-9 bg-gradient-to-br from-[#3b82f6] to-[#c5a05b] rounded-2xl flex items-center justify-center text-2xl shadow-inner ring-2 ring-[#c5a05b]/50">🐯</span>
-                <section>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-gradient-to-br from-[#3b82f6] to-[#c5a05b] rounded-2xl flex items-center justify-center text-2xl shadow-inner ring-2 ring-[#c5a05b]/50">🐯</div>
+                <div>
                     <p class="font-medium">煥然（1986 破軍七殺）</p>
                     <p class="text-xs text-[#c5a05b]">三孩之父 • 行動派領導者</p>
-                </section>
-            </section>
-            <section class="text-right">
+                </div>
+            </div>
+            <div class="text-right">
                 <p class="text-xs text-gray-400">今日模擬勝率</p>
                 <p id="win-rate" class="text-3xl font-bold text-[#22c55e]">99.2%</p>
-            </section>
-        </section>
+            </div>
+        </div>
     </header>
 
+    <!-- 掃描狀態列 -->
     <div id="scan-status" class="px-6 py-2 bg-[#1a1a2e] text-xs font-mono flex items-center justify-between border-b border-[#c5a05b]/30">
         <span>🔄 掃描模式：<span id="mode-text">盤後歷史模式</span></span>
         <span id="last-update" class="text-[#c5a05b]">上次更新：--</span>
-        <button type="button" onclick="toggleRealTime()" class="bg-[#c5a05b] text-black px-5 py-1 rounded-3xl text-sm font-bold hover:brightness-110 transition">切換即時掃描</button>
+        <button onclick="toggleRealTime()" class="bg-[#c5a05b] text-black px-5 py-1 rounded-3xl text-sm font-bold hover:brightness-110 transition">切換即時掃描</button>
     </div>
 
-    <main class="flex h-[calc(100vh-73px-40px)]">
+    <div class="flex h-[calc(100vh-73px-40px)]">
+        <!-- LEFT：全台股掃描 + 節奏篩選 + 盤前情資 -->
         <aside class="w-80 border-r border-[#c5a05b]/20 bg-[#111113] flex flex-col">
-            <section class="p-5 border-b border-[#c5a05b]/20">
-                <section class="flex justify-between items-center mb-4">
+            <!-- 節奏篩選器 -->
+            <div class="p-5 border-b border-[#c5a05b]/20 bg-[#1a1a2e]">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-[#c5a05b] font-bold flex items-center gap-2">🎵 節奏型起漲股篩選</h3>
+                    <label class="flex items-center gap-2 text-xs cursor-pointer">
+                        <input type="checkbox" id="rhythm-filter" checked onchange="applyRhythmFilter()" class="accent-[#c5a05b]">
+                        <span>只顯示符合「漲3跌1」節奏</span>
+                    </label>
+                </div>
+                <div class="text-xs text-gray-400">已排除凱基台北等短線大戶狂倒貨標的 • 股性穩健優先</div>
+            </div>
+
+            <!-- 盤前情資 -->
+            <div class="p-5 border-b border-[#c5a05b]/20">
+                <h3 class="text-[#c5a05b] font-bold mb-3 flex items-center gap-2">🌅 盤前情資檢核（FM Studio SOP）</h3>
+                <div id="premarket-checklist" class="grid grid-cols-2 gap-3 text-xs"></div>
+            </div>
+
+            <div class="p-5 border-b border-[#c5a05b]/20">
+                <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-semibold flex items-center gap-2">
                         <span class="text-[#c5a05b]">📡</span> 全台股掃描
                     </h2>
-                    <button type="button" onclick="runFullScan()" class="scan-btn bg-gradient-to-r from-[#c5a05b] to-[#3b82f6] text-black px-6 py-2 rounded-3xl font-bold flex items-center gap-2 hover:scale-105 transition">
+                    <button onclick="runFullScan()" class="bg-gradient-to-r from-[#c5a05b] to-[#3b82f6] text-black px-6 py-2 rounded-3xl font-bold flex items-center gap-2 hover:scale-105 transition">
                         <span>🔥 立即掃描</span>
                     </button>
-                </section>
-                <section class="grid grid-cols-3 gap-2 text-xs">
-                    <article class="filter-chip bg-[#1a1a2e] rounded-2xl p-3 text-center">
-                        <p class="text-[#c5a05b]">漲幅</p>
-                        <p class="font-mono text-lg">3~6%</p>
-                    </article>
-                    <article class="filter-chip bg-[#1a1a2e] rounded-2xl p-3 text-center">
-                        <p class="text-[#c5a05b]">量增</p>
-                        <p class="font-mono text-lg">&gt;昨日</p>
-                    </article>
-                    <article class="filter-chip bg-[#1a1a2e] rounded-2xl p-3 text-center">
-                        <p class="text-[#c5a05b]">5MA</p>
-                        <p class="font-mono text-lg">站穩</p>
-                    </article>
-                </section>
-            </section>
-            <section class="flex-1 overflow-auto p-4 space-y-3 custom-scrollbar" id="stock-list"></section>
-            <section class="p-5 border-t border-[#c5a05b]/20 bg-[#1a1a2e]">
-                <h3 class="text-sm font-medium mb-3 flex items-center gap-1"><span>🛡️</span> 保本價 &amp; 停損計算</h3>
-                <section class="flex gap-3">
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-xs">
+                    <div class="filter-chip bg-[#1a1a2e] rounded-2xl p-3 text-center"><p class="text-[#c5a05b]">漲幅</p><p class="font-mono text-lg">3\~6%</p></div>
+                    <div class="filter-chip bg-[#1a1a2e] rounded-2xl p-3 text-center"><p class="text-[#c5a05b]">量增</p><p class="font-mono text-lg">&gt;昨日</p></div>
+                    <div class="filter-chip bg-[#1a1a2e] rounded-2xl p-3 text-center"><p class="text-[#c5a05b]">5MA</p><p class="font-mono text-lg">站穩</p></div>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-auto p-4 space-y-3 custom-scrollbar" id="stock-list"></div>
+
+            <!-- 保本價計算器 -->
+            <div class="p-5 border-t border-[#c5a05b]/20 bg-[#1a1a2e]">
+                <h3 class="text-sm font-medium mb-3 flex items-center gap-1"><span>🛡️</span> 保本價 & 停損計算</h3>
+                <div class="flex gap-3">
                     <input id="buy-price" type="text" placeholder="買進價" class="flex-1 bg-[#111113] border border-[#c5a05b]/30 rounded-3xl px-5 py-3 text-center font-mono focus:outline-none focus:border-[#3b82f6]">
-                    <button type="button" onclick="calculateBreakeven()" class="bg-[#c5a05b] text-black px-8 rounded-3xl font-bold hover:brightness-110 transition">計算</button>
-                </section>
-                <section id="breakeven-result" class="mt-4 text-sm font-mono bg-[#111113] rounded-3xl p-4 hidden"></section>
-                <section class="mt-4 text-xs text-[#c5a05b] flex items-center justify-between">
+                    <button onclick="calculateBreakeven()" class="bg-[#c5a05b] text-black px-8 rounded-3xl font-bold hover:brightness-110 transition">計算</button>
+                </div>
+                <div id="breakeven-result" class="mt-4 text-sm font-mono bg-[#111113] rounded-3xl p-4 hidden"></div>
+                <div class="mt-4 text-xs text-[#c5a05b] flex items-center justify-between">
                     <span>強制停損</span>
                     <span onclick="triggerStopLossWarning()" class="cursor-pointer hover:underline">2% 觸發 AI 警告</span>
-                </section>
-            </section>
+                </div>
+            </div>
         </aside>
 
-        <!-- CENTER：K線 + 入場雷達（紅綠箭頭版） -->
+        <!-- CENTER：K線 + 入場雷達 -->
         <section class="flex-1 flex flex-col min-w-0">
-            <section class="px-6 py-3 border-b border-[#c5a05b]/20 flex items-center justify-between bg-[#111113] shrink-0">
-                <section class="flex items-center gap-4">
+            <div class="px-6 py-3 border-b border-[#c5a05b]/20 flex items-center justify-between bg-[#111113] shrink-0">
+                <div class="flex items-center gap-4">
                     <select id="stock-selector" onchange="loadChart(this.value)" class="bg-[#1a1a2e] border border-[#c5a05b]/30 rounded-3xl px-5 py-2 text-white font-medium focus:outline-none text-sm"></select>
                     <span id="main-force-status" class="px-4 py-1 rounded-3xl text-xs font-medium bg-gradient-to-r from-[#22c55e] to-[#c5a05b] text-black flex items-center gap-2"></span>
-                </section>
+                </div>
                 <span class="text-xs px-3 py-1 bg-[#1a1a2e] rounded-3xl text-[#c5a05b]">10日沉澱後爆量突破</span>
-            </section>
-            <section class="flex-1 flex min-h-0">
-                <section class="flex-1 p-6 bg-[#0a0a0a] flex flex-col chart-container min-w-0">
-                    <section class="flex items-center justify-between mb-4 shrink-0">
+            </div>
+            <div class="flex-1 flex min-h-0">
+                <div class="flex-1 p-6 bg-[#0a0a0a] flex flex-col min-w-0">
+                    <div class="flex items-center justify-between mb-4 shrink-0">
                         <span id="chart-title" class="text-xl font-bold text-[#c5a05b]">技術分析 K線 • 清楚簡潔版</span>
                         <span id="stock-name-badge" class="px-5 py-1 bg-[#1a1a2e] rounded-3xl text-sm font-medium"></span>
-                    </section>
+                    </div>
                     <canvas id="kline-chart" class="flex-1 w-full min-h-[200px]"></canvas>
-                </section>
+                </div>
                 <aside id="signal-panel" class="w-80 bg-[#111113] border-l border-[#c5a05b]/30 p-5 flex flex-col shrink-0">
                     <h3 class="text-[#c5a05b] font-bold mb-4 flex items-center gap-2">📡 然然雷達 • 入場時機</h3>
-                    <section id="signals-content" class="space-y-6 flex-1 overflow-auto custom-scrollbar"></section>
-                    <p class="mt-auto pt-4 text-[10px] text-gray-500 border-t border-[#c5a05b]/20">
-                        然然機器人 • 盯盤模式 • 內核 Grok • 只在關鍵點出聲
-                    </p>
+                    <div id="signals-content" class="space-y-6 flex-1 overflow-auto custom-scrollbar"></div>
+                    <p class="mt-auto pt-4 text-[10px] text-gray-500 border-t border-[#c5a05b]/20">然然機器人 • 盯盤模式 • 內核 Grok • 只在關鍵點出聲</p>
                 </aside>
-            </section>
+            </div>
         </section>
 
-        <!-- RIGHT：然然機器人（少講話版） -->
+        <!-- RIGHT：然然機器人 + 覆盤日誌 -->
         <aside class="w-72 border-l border-[#c5a05b]/20 bg-[#111113] flex flex-col shrink-0">
-            <section class="p-5 border-b border-[#c5a05b]/20 flex items-center gap-3">
-                <span class="w-12 h-12 bg-gradient-to-br from-[#3b82f6] to-[#c5a05b] rounded-3xl flex items-center justify-center text-4xl shadow-2xl ring-4 ring-[#c5a05b]/30">🐯</span>
-                <section>
+            <div class="p-5 border-b border-[#c5a05b]/20 flex items-center gap-3">
+                <div class="w-12 h-12 bg-gradient-to-br from-[#3b82f6] to-[#c5a05b] rounded-3xl flex items-center justify-center text-4xl shadow-2xl ring-4 ring-[#c5a05b]/30">🐯</div>
+                <div>
                     <p class="text-xl font-bold">然然機器人</p>
                     <p class="text-xs text-[#c5a05b]">盯盤模式 • 少講話</p>
-                </section>
-            </section>
-            <section id="ai-bubbles" class="flex-1 p-5 space-y-3 overflow-auto custom-scrollbar"></section>
-            <section class="p-4 border-t border-[#c5a05b]/20">
-                <section class="flex gap-2">
+                </div>
+            </div>
+            <div id="ai-bubbles" class="flex-1 p-5 space-y-3 overflow-auto custom-scrollbar"></div>
+            <div class="p-4 border-t border-[#c5a05b]/20">
+                <div class="flex gap-2">
                     <input id="ai-input" type="text" placeholder="輸入指令..." class="flex-1 bg-[#1a1a2e] border border-[#c5a05b]/30 rounded-3xl px-5 py-3 focus:outline-none text-sm" onkeydown="if(event.key==='Enter') handleAIQuery()">
-                    <button type="button" onclick="handleAIQuery()" class="w-11 h-11 bg-gradient-to-br from-[#c5a05b] to-[#3b82f6] rounded-3xl flex items-center justify-center text-xl hover:scale-105 transition">🚀</button>
-                </section>
+                    <button onclick="handleAIQuery()" class="w-11 h-11 bg-gradient-to-br from-[#c5a05b] to-[#3b82f6] rounded-3xl flex items-center justify-center text-xl hover:scale-105 transition">🚀</button>
+                </div>
                 <p class="text-center text-[10px] text-gray-500 mt-3">關鍵點才出聲 • 2% 停損鐵律</p>
-            </section>
+            </div>
+            
+            <!-- 覆盤日誌 -->
+            <div class="p-5 border-t border-[#c5a05b]/20">
+                <h3 class="text-[#c5a05b] font-bold mb-3">📝 今日交易日誌（覆盤用）</h3>
+                <textarea id="trade-log" class="w-full h-28 bg-[#111113] border border-[#c5a05b]/30 rounded-3xl p-4 text-sm" placeholder="進場理由 / 出場理由 / 盈虧 / 檢討..."></textarea>
+                <button onclick="saveTradeLog()" class="mt-3 w-full bg-[#c5a05b] text-black py-3 rounded-3xl font-bold hover:brightness-110 transition">儲存今日覆盤</button>
+            </div>
         </aside>
-    </main>
+    </div>
 
-    <div id="warning-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 modal-backdrop" onclick="this.classList.add('hidden')">
-        <section id="warning-content" class="bg-[#1a1a2e] border-4 border-red-500 rounded-3xl p-10 text-center max-w-md animate-shake" onclick="event.stopPropagation()">
-            <p class="text-6xl mb-6">🚨</p>
+    <!-- 警告彈窗 -->
+    <div id="warning-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50" onclick="this.classList.add('hidden')">
+        <div class="bg-[#1a1a2e] border-4 border-red-500 rounded-3xl p-10 text-center max-w-md animate-shake" onclick="event.stopPropagation()">
+            <div class="text-6xl mb-6">🚨</div>
             <h2 class="text-3xl font-bold text-red-400 mb-4">煥然！停損！</h2>
             <p class="text-xl">淨損已達 2% • 死命抱緊只會被主力洗掉</p>
             <p class="mt-8 text-sm text-gray-400">你是三個孩子的榜樣，穩健才是王道</p>
-            <button type="button" onclick="document.getElementById('warning-modal').classList.add('hidden')" class="mt-8 bg-red-500 text-white px-10 py-4 rounded-3xl font-bold hover:bg-red-600 transition">我已執行停損</button>
-        </section>
+            <button onclick="document.getElementById('warning-modal').classList.add('hidden')" class="mt-8 bg-red-500 text-white px-10 py-4 rounded-3xl font-bold">我已執行停損</button>
+        </div>
     </div>
-    <div id="fake-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 modal-backdrop" onclick="this.classList.add('hidden')">
-        <section class="bg-[#1a1a2e] border-4 border-[#c5a05b] rounded-3xl p-10 text-center max-w-lg" onclick="event.stopPropagation()">
-            <p class="text-6xl mb-4">⚠️</p>
-            <h2 class="text-2xl font-bold text-red-400 mb-4">誘敵假突破偵測</h2>
-            <p class="text-gray-300 leading-relaxed">量縮價漲、無量噴發 — 主力在誘多出貨。煥然，寧可錯過也不要接刀！</p>
-            <button type="button" onclick="document.getElementById('fake-modal').classList.add('hidden')" class="mt-8 bg-[#c5a05b] text-black px-10 py-4 rounded-3xl font-bold">收到，保持紀律</button>
-        </section>
-    </div>
-    <script src="app.js"></script>
-</body>
-</html>
+
+    <script>
+        // ==================== 完整整合版 app.js（v2.5 全功能） ====================
+        let mockStocks = [
+            { symbol: "802", name: "昇陽半導體", change: 9.94, volume: 37170, prevVolume: 26663, ma5: 272, price: 287.5, grade: "S", force: "量增突破 + 主力重壓", isFake: false, rhythmScore: 4.2 },
+            { symbol: "620", name: "雷科", change: 9.71, volume: 8957, prevVolume: 8944, ma5: 76, price: 113.0, grade: "S", force: "低基期補漲 + 量價齊揚", isFake: false, rhythmScore: 3.8 },
+            { symbol: "309", name: "日電貿", change: 9.65, volume: 12800, prevVolume: 6676, ma5: 135, price: 142.0, grade: "S", force: "主力淨買超 + 技術突破", isFake: false, rhythmScore: 4.5 },
+            { symbol: "348", name: "群創", change: 1.98, volume: 18318, prevVolume: 7254, ma5: 36, price: 36.1, grade: "A", force: "量增站穩", isFake: false, rhythmScore: 2.1 },
+            { symbol: "804", name: "蜜望", change: 9.71, volume: 6332, prevVolume: 9732, ma5: 113, price: 113.0, grade: "B", force: "無量震盪", isFake: true, rhythmScore: 1.2 }
+        ];
+        let currentChart = null;
+        const coreQuotes = ["記住 2% 停損", "等回踩再進", "你是榜樣", "穩健才是王道", "寧可錯過不接刀"];
+
+        function getColorClass(change) { return change >= 0 ? 'text-red-500' : 'text-emerald-500'; }
+
+        function renderPremarketChecklist() {
+            const el = document.getElementById('premarket-checklist');
+            el.innerHTML = `
+                <div class="bg-[#111113] p-3 rounded-3xl">美股：那斯達克 +0.8%（費半強）</div>
+                <div class="bg-[#111113] p-3 rounded-3xl">台指期：開高 +45點</div>
+                <div class="bg-[#111113] p-3 rounded-3xl">日韓：同步走高</div>
+                <div class="bg-[#111113] p-3 rounded-3xl text-[#22c55e]">今日劇本：偏多 • 鎖量增強勢股</div>
+            `;
+        }
+
+        function applyRhythmFilter() {
+            const checkbox = document.getElementById('rhythm-filter');
+            if (!checkbox || !checkbox.checked) { renderStockList(); return; }
+            
+            const filtered = mockStocks.filter(s => s.rhythmScore >= 3.5 && s.grade !== 'B' && !s.isFake);
+            const listEl = document.getElementById('stock-list');
+            listEl.innerHTML = `<div class="text-[#22c55e] text-center py-2 text-xs">✅ 已篩選出 ${filtered.length} 檔節奏型起漲股 • 主力行為乾淨</div>`;
+            
+            filtered.forEach(stock => {
+                const colorClass = getColorClass(stock.change);
+                const changeSign = stock.change >= 0 ? '+' : '';
+                listEl.innerHTML += `
+                    <div onclick="selectStock('${stock.symbol}')" class="stock-item flex justify-between items-center bg-[#1a1a2e] hover:bg-[#25253a] p-4 rounded-3xl cursor-pointer">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3">
+                                <span class="font-mono text-xl">${stock.symbol}</span>
+                                <span class="text-sm">${stock.name}</span>
+                            </div>
+                            <div class="text-xs mt-1 text-gray-400">主力行為：${stock.force}</div>
+                            <div class="text-[10px] text-[#c5a05b] mt-1">節奏分數：${stock.rhythmScore} • 漲3跌1</div>
+                        </div>
+                        <div class="text-right mr-4">
+                            <div class="font-mono text-3xl font-bold \( {colorClass}"> \){stock.price}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-2xl font-bold \( {colorClass}"> \){changeSign}${stock.change}%</div>
+                            <div class="flex items-center justify-end gap-2">
+                                <span class="px-3 py-0.5 text-xs rounded-3xl \( {stock.grade === 'S' ? 'bg-[#c5a05b]/10 text-[#c5a05b]' : 'text-gray-400'}"> \){stock.grade}級</span>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function renderStockList(isScanned = false) {
+            const listEl = document.getElementById('stock-list');
+            listEl.innerHTML = '';
+            const filtered = mockStocks.sort((a,b) => b.change - a.change);
+            
+            filtered.forEach(stock => {
+                const colorClass = getColorClass(stock.change);
+                const changeSign = stock.change >= 0 ? '+' : '';
+                listEl.innerHTML += `
+                    <div onclick="selectStock('${stock.symbol}')" class="stock-item flex justify-between items-center bg-[#1a1a2e] hover:bg-[#25253a] p-4 rounded-3xl cursor-pointer">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3">
+                                <span class="font-mono text-xl">${stock.symbol}</span>
+                                <span class="text-sm">${stock.name}</span>
+                            </div>
+                            <div class="text-xs mt-1 text-gray-400">主力行為：${stock.force}</div>
+                        </div>
+                        <div class="text-right mr-4">
+                            <div class="font-mono text-3xl font-bold \( {colorClass}"> \){stock.price}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-2xl font-bold \( {colorClass}"> \){changeSign}${stock.change}%</div>
+                            <div class="flex items-center justify-end gap-2">
+                                <span class="px-3 py-0.5 text-xs rounded-3xl \( {stock.grade === 'S' ? 'bg-[#c5a05b]/10 text-[#c5a05b]' : 'text-gray-400'}"> \){stock.grade}級</span>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function loadChart(symbol) {
+            const selectedStock = mockStocks.find(s => s.symbol === symbol);
+            if (!selectedStock) return;
+            document.getElementById('stock-name-badge').innerHTML = `${selectedStock.symbol} \( {selectedStock.name} <span class=" \){getColorClass(selectedStock.change)}">\( {selectedStock.change >= 0 ? '+' : ''} \){selectedStock.change}%</span>`;
+            
+            const data = { labels: ["5/8","5/9","5/12","5/13","5/14","5/15"], prices: [1325, 1310, 1295, 1308, 1292, 1285], ma5: [1318, 1315, 1308, 1305, 1302, 1298] };
+            if (currentChart) currentChart.destroy();
+            const lineColor = selectedStock.change >= 0 ? '#ef4444' : '#10b981';
+            currentChart = new Chart(document.getElementById('kline-chart'), {
+                type: 'line', data: { labels: data.labels, datasets: [{ label: '股價', data: data.prices, borderColor: lineColor, borderWidth: 5, tension: 0.15, pointRadius: 0 }, { label: '5MA', data: data.ma5, borderColor: '#3b82f6', borderWidth: 2, borderDash: [6,3] }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#c5a05b' } } } }
+            });
+            detectMainForce(selectedStock);
+            renderSignals(selectedStock);
+        }
+
+        function renderSignals(stock) {
+            const container = document.getElementById('signals-content');
+            container.innerHTML = '';
+            let html = '';
+            
+            if (stock.grade === 'S' && stock.change > 3) {
+                html += `
+                <div class="bg-gradient-to-br from-[#22c55e]/10 border-2 border-[#22c55e] rounded-3xl p-5">
+                    <div class="flex items-center gap-4">
+                        <span class="text-5xl">🔴</span>
+                        <div>
+                            <div class="font-bold text-[#22c55e]">紅箭頭買訊</div>
+                            <div class="text-2xl font-mono">${stock.price}</div>
+                            <div class="text-xs mt-1">量增 + 主力淨買超 + 5MA站穩 • 起漲段</div>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-xs text-[#22c55e]">小教學：漲3跌1節奏 • 等小回檔低接 • 凱基台北重壓就縮小部位</di

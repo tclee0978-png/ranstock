@@ -24,33 +24,29 @@
         <div class="flex items-center gap-6">
             <div class="text-xl font-black italic tracking-tighter text-white">然然贏家 <span class="text-[var(--gold)]">Pro</span></div>
             <div class="hidden md:flex gap-4 text-xs border-l border-gray-700 pl-4">
-                <div id="market-status">台股大盤: <span class="text-[var(--red)]">同步中...</span></div>
-                <div>今日戰略：<span class="text-white">主力成本區不破，HODL 抱緊</span></div>
+                <div id="market-status">數據狀態: <span class="text-[var(--gold)]">連線中...</span></div>
+                <div>今日戰略：<span class="text-white">回踩 5MA 守穩即上車</span></div>
             </div>
         </div>
         <div class="flex items-center gap-4">
             <span id="current-time" class="font-mono text-[var(--gold)] font-bold"></span>
             <div class="flex bg-[#222] rounded px-2 py-1 text-[10px] gap-2">
-                <input type="text" id="stock-search" placeholder="輸入代號(如2337)" class="bg-transparent border-none outline-none w-20 text-white">
-                <button onclick="changeStock()" class="text-[var(--gold)] font-bold">追蹤</button>
+                <input type="text" id="stock-search" placeholder="代號" value="2337" class="bg-transparent border-none outline-none w-16 text-white text-center">
+                <button onclick="changeStock()" class="text-[var(--gold)] font-black">追蹤</button>
             </div>
         </div>
     </div>
 
     <div class="flex flex-1 overflow-hidden">
-        <div class="w-80 border-r border-[#333] bg-[#111] flex flex-col">
+        <div class="w-72 border-r border-[#333] bg-[#111] flex flex-col">
             <div class="p-3 bg-[#1a1a1a] flex justify-between items-center">
-                <span class="section-title m-0 border-0">🎯 S級監控清單</span>
-                <span class="text-[9px] text-[var(--green)]">LIVE</span>
+                <span class="section-title m-0 border-0">🎯 實時獵殺區</span>
+                <span class="text-[9px] text-[var(--gold)] animate-pulse">LIVE</span>
             </div>
             <div class="flex-1 overflow-auto">
-                <table class="w-full text-xs">
+                <table class="w-full text-[11px]">
                     <thead class="sticky top-0 bg-[#111] text-gray-500 text-left">
-                        <tr>
-                            <th class="p-2">標的</th>
-                            <th class="p-2 text-right">現價</th>
-                            <th class="p-2 text-right">漲跌%</th>
-                        </tr>
+                        <tr><th class="p-2">標的</th><th class="p-2 text-right">現價</th><th class="p-2 text-right">幅度%</th></tr>
                     </thead>
                     <tbody id="stock-list"></tbody>
                 </table>
@@ -59,36 +55,36 @@
 
         <div class="flex-1 flex flex-col bg-[#050505] relative">
             <div id="chart-overlay" class="absolute top-4 right-4 z-10 p-3 bg-black/60 border border-gray-800 rounded">
-                <div class="text-[var(--gold)] text-xs font-bold mb-1">財務試算 (淨利)</div>
-                <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px]">
+                <div class="text-[var(--gold)] text-[10px] font-bold mb-1">財務預算(含稅費)</div>
+                <div class="grid grid-cols-2 gap-x-4 text-[11px]">
                     <span class="text-gray-400">保本價：</span><span id="calc-even" class="text-white">--</span>
-                    <span class="text-gray-400">停損點：</span><span id="calc-stop" class="text-[var(--red)]">--</span>
-                    <span class="text-gray-400">目標位：</span><span id="calc-target" class="text-[var(--green)]">--</span>
+                    <span class="text-gray-400">停損(-2%)：</span><span id="calc-stop" class="text-[var(--red)]">--</span>
                 </div>
             </div>
             <div class="px-6 py-4 flex items-center justify-between">
-                <h2 id="focus-stock" class="text-xl font-bold">等待啟動...</h2>
+                <h2 id="focus-stock" class="text-xl font-bold text-white tracking-widest">載入中...</h2>
             </div>
-            <div class="flex-1 p-4">
+            <div class="flex-1 p-4 relative">
                 <canvas id="kline-chart"></canvas>
             </div>
         </div>
 
-        <div class="w-72 border-l border-[#333] bg-[#111] flex flex-col">
-            <div class="p-4 bg-[#1a1a1a] border-b border-[#333]">
-                <div class="section-title">🛡️ 戰術模式</div>
-                <label class="flex items-center justify-between cursor-pointer group">
-                    <span class="text-xs font-bold group-hover:text-[var(--gold)]">死命抱緊 (HODL)</span>
-                    <input type="checkbox" id="hodl-toggle" class="sr-only peer">
-                    <div class="w-10 h-5 bg-gray-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--gold)] relative"></div>
-                </label>
-            </div>
+        <div class="w-64 border-l border-[#333] bg-[#111] flex flex-col p-4">
+            <div class="section-title">🛡️ 戰術模式</div>
+            <label class="flex items-center justify-between cursor-pointer mb-6">
+                <span class="text-[11px] font-bold">死命抱緊 (HODL)</span>
+                <input type="checkbox" id="hodl-toggle" class="sr-only peer">
+                <div class="w-8 h-4 bg-gray-700 rounded-full peer peer-checked:bg-[var(--gold)] relative"></div>
+            </label>
             
-            <div class="flex-1 p-4 overflow-auto space-y-2 text-[10px]" id="ai-logs"></div>
+            <div class="flex-1 overflow-auto space-y-2 text-[10px] text-gray-400" id="ai-logs">
+                <div>[SYSTEM] 然然贏家系統啟動...</div>
+            </div>
 
-            <div class="p-4 bg-[#0a0a0a] border-t border-[#333]" id="robot-card">
-                <div id="ai-bubble" class="text-xs bg-[#1a1a1a] p-3 rounded-lg border border-gray-800 leading-relaxed">
-                    煥然，我正在透過中繼站抓取即時數據。這比模擬的更危險，但也更真實。
+            <div class="pt-4 border-t border-[#333]" id="robot-card">
+                <div class="text-[var(--gold)] text-xs font-black mb-2">煥然 AI 戰略官</div>
+                <div id="ai-bubble" class="text-[11px] bg-[#1a1a1a] p-3 rounded-lg border border-gray-800">
+                    煥然，我已進入實時監控狀態。數據每 10 秒自動更新一次。
                 </div>
             </div>
         </div>
@@ -96,14 +92,15 @@
 
     <div id="tactical-popup">
         <div class="text-5xl font-black text-[var(--red)] mb-2">S</div>
-        <div class="text-[var(--gold)] font-bold mb-4">AI 上車訊號發動</div>
-        <div id="pop-name" class="text-xl font-bold text-white mb-2">--</div>
-        <button onclick="closePopup()" class="w-full py-3 bg-[var(--gold)] text-black font-black rounded-lg">收到，嚴守紀律</button>
+        <div class="text-[var(--gold)] font-bold mb-2">S級買點發動</div>
+        <div id="pop-name" class="text-lg font-bold text-white mb-6">--</div>
+        <button onclick="closePopup()" class="w-full py-2 bg-[var(--gold)] text-black font-black rounded">收到</button>
     </div>
 
     <script>
-        let currentStock = "8390";
+        let currentStock = "2337";
         let historyData = [];
+        let myChart = null;
 
         async function fetchLive() {
             const url = `https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_${currentStock}.tw|otc_${currentStock}.tw`;
@@ -115,42 +112,41 @@
                 const data = JSON.parse(json.contents).msgArray[0];
                 if (data) {
                     const price = parseFloat(data.z) || parseFloat(data.y);
-                    const open = parseFloat(data.o) || price;
-                    const change = ((price - parseFloat(data.y)) / parseFloat(data.y)) * 100;
+                    const yesterday = parseFloat(data.y);
+                    const change = ((price - yesterday) / yesterday) * 100;
                     
                     updateUI(data.n, price, change);
-                    if (change > 5) triggerS(data.n);
+                    if (change > 4) triggerS(data.n); // 漲幅超過4%觸發
                 }
-            } catch (e) { addLog("數據同步中...", "gray"); }
+            } catch (e) { addLog("同步異常，重試中...", "gray"); }
         }
 
         function updateUI(name, price, change) {
-            document.getElementById('focus-stock').innerText = `${name} (${currentStock}) - 現價: ${price}`;
-            const cost = price * 1.0045; // 估算含稅成本
-            document.getElementById('calc-even').innerText = cost.toFixed(2);
+            document.getElementById('focus-stock').innerText = `${name} (${currentStock})`;
+            document.getElementById('calc-even').innerText = (price * 1.0045).toFixed(2);
             document.getElementById('calc-stop').innerText = (price * 0.98).toFixed(2);
-            document.getElementById('calc-target').innerText = (price * 1.05).toFixed(2);
             
             historyData.push(price);
             if (historyData.length > 20) historyData.shift();
-            drawChart(change >= 0);
-            addLog(`${name} 價格更新: ${price} (${change.toFixed(2)}%)`, change >= 0 ? "red" : "green");
+            
+            renderChart(change >= 0);
+            addLog(`${name} 實時報價: ${price}`, change >= 0 ? "var(--red)" : "var(--green)");
         }
 
-        function drawChart(isUp) {
-            const ctx = document.getElementById('kline-chart');
-            if (window.myChart) window.myChart.destroy();
-            window.myChart = new Chart(ctx, {
+        function renderChart(isUp) {
+            const ctx = document.getElementById('kline-chart').getContext('2d');
+            if (myChart) myChart.destroy();
+            myChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: Array(historyData.length).fill(''),
                     datasets: [{
                         data: historyData,
                         borderColor: isUp ? '#ff3b3b' : '#00c853',
-                        borderWidth: 2, tension: 0.4, pointRadius: 0
+                        borderWidth: 2, tension: 0.3, pointRadius: 0
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#222' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#1a1a1a' } } } }
             });
         }
 
@@ -177,11 +173,11 @@
         }
 
         window.onload = () => {
+            setInterval(fetchLive, 10000);
+            fetchLive();
             setInterval(() => {
                 document.getElementById('current-time').innerText = new Date().toLocaleTimeString();
-                fetchLive();
-            }, 10000);
-            fetchLive();
+            }, 1000);
         };
     </script>
 </body>

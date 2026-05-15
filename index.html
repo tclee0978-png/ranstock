@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>然然贏家 Pro • 煥然專屬</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-[#0a0a0a] text-white font-sans overflow-hidden">
+    <header class="border-b border-[#c5a05b] bg-gradient-to-r from-[#0a0a0a] to-[#1a1a2e] px-6 py-4 flex items-center justify-between">
+        <section class="flex items-center gap-3">
+            <span class="w-10 h-10 bg-gradient-to-br from-[#c5a05b] to-[#3b82f6] rounded-2xl flex items-center justify-center text-2xl shadow-lg shadow-[#c5a05b]/50">🏎️</span>
+            <section>
+                <h1 class="text-3xl font-bold tracking-tighter bg-gradient-to-r from-[#c5a05b] to-[#3b82f6] bg-clip-text text-transparent">然然贏家 Pro</h1>
+                <p class="text-[#c5a05b] text-sm -mt-1">李煥然專屬 • 高勝率紀律系統</p>
+            </section>
+        </section>
+        <section class="flex items-center gap-8">
+            <section id="market-status" class="flex items-center gap-2 bg-[#1a1a2e] px-5 py-2 rounded-3xl border border-[#c5a05b]/30">
+                <span id="market-dot" class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
+                <span id="market-label" class="text-lg font-medium">盤後模式</span>
+                <span id="current-time" class="text-[#c5a05b] text-sm font-mono"></span>
+            </section>
+            <section class="flex items-center gap-3">
+                <span class="w-9 h-9 bg-gradient-to-br from-[#3b82f6] to-[#c5a05b] rounded-2xl flex items-center justify-center text-2xl shadow-inner ring-2 ring-[#c5a05b]/50">🐯</span>
+                <section>
+                    <p class="font-medium">煥然（1986 破軍七殺）</p>
+                    <p class="text-xs text-[#c5a05b]">三孩之父 • 行動派領導者</p>
+                </section>
+            </section>
+            <section class="text-right">
+                <p class="text-xs text-gray-400">今日模擬勝率</p>
+                <p id="win-rate" class="text-3xl font-bold text-[#22c55e]">99.2%</p>
+            </section>
+        </section>
+    </header>
+
+    <main class="flex h-[calc(100vh-73px)]">
+        <aside class="w-80 border-r border-[#c5a05b]/20 bg-[#111113] flex flex-col">
+            <section class="p-5 border-b border-[#c5a05b]/20">
+                <section class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold flex items-center gap-2">
+                        <span class="text-[#c5a05b]">📡</span> 全台股掃描
+                    </h2>
+                    <button type="button" onclick="runFullScan()" class="scan-btn bg-gradient-to-r from-[#c5a05b] to-[#3b82f6] text-black px-6 py-2 rounded-3xl font-bold flex items-center gap-2 hover:scale-105 transition">
+                        <span>🔥 立即掃描</span>
+                    </button>
+                </section>
+                <section class="grid grid-cols-3 gap-2 text-xs">
+                    <article class="filter-chip bg-[#1a1a2e] rounded-2xl p-3 text-center">
+                        <p class="text-[#c5a05b]">漲幅</p>
+                        <p class="font-mono text-lg">3~6%</p>
+                    </article>
+                    <article class="filter-chip bg-[#1a1a2e] rounded-2xl p-3 text-center">
+                        <p class="text-[#c5a05b]">量增</p>
+                        <p class="font-mono text-lg">&gt;昨日</p>
+                    </article>
+                    <article class="filter-chip bg-[#1a1a2e] rounded-2xl p-3 text-center">
+                        <p class="text-[#c5a05b]">5MA</p>
+                        <p class="font-mono text-lg">站穩</p>
+                    </article>
+                </section>
+            </section>
+            <section class="flex-1 overflow-auto p-4 space-y-3 custom-scrollbar" id="stock-list"></section>
+            <section class="p-5 border-t border-[#c5a05b]/20 bg-[#1a1a2e]">
+                <h3 class="text-sm font-medium mb-3 flex items-center gap-1"><span>🛡️</span> 保本價 &amp; 停損計算</h3>
+                <section class="flex gap-3">
+                    <input id="buy-price" type="text" placeholder="買進價" class="flex-1 bg-[#111113] border border-[#c5a05b]/30 rounded-3xl px-5 py-3 text-center font-mono focus:outline-none focus:border-[#3b82f6]">
+                    <button type="button" onclick="calculateBreakeven()" class="bg-[#c5a05b] text-black px-8 rounded-3xl font-bold hover:brightness-110 transition">計算</button>
+                </section>
+                <section id="breakeven-result" class="mt-4 text-sm font-mono bg-[#111113] rounded-3xl p-4 hidden"></section>
+                <section class="mt-4 text-xs text-[#c5a05b] flex items-center justify-between">
+                    <span>強制停損</span>
+                    <span onclick="triggerStopLossWarning()" class="cursor-pointer hover:underline">2% 觸發 AI 警告</span>
+                </section>
+            </section>
+        </aside>
+
+        <section class="flex-1 flex flex-col">
+            <section class="px-6 py-4 border-b border-[#c5a05b]/20 flex items-center justify-between bg-[#111113]">
+                <section class="flex items-center gap-4">
+                    <select id="stock-selector" onchange="loadChart(this.value)" class="bg-[#1a1a2e] border border-[#c5a05b]/30 rounded-3xl px-5 py-3 text-white font-medium focus:outline-none"></select>
+                    <span id="main-force-status" class="px-5 py-1 rounded-3xl text-sm font-medium bg-gradient-to-r from-[#22c55e] to-[#c5a05b] text-black flex items-center gap-2"></span>
+                </section>
+                <section class="flex items-center text-sm font-mono text-[#c5a05b]">
+                    <span id="chart-title">歷史主力佈局分析 • 盤後模式</span>
+                    <span class="ml-8 text-xs px-3 py-1 bg-[#1a1a2e] rounded-3xl">10日沉澱後爆量突破</span>
+                </section>
+            </section>
+            <section class="flex-1 p-6 bg-[#0a0a0a] chart-container">
+                <canvas id="kline-chart" class="w-full h-full"></canvas>
+            </section>
+            <section class="px-6 py-3 bg-[#1a1a2e] border-t border-[#c5a05b]/20 text-sm flex items-center gap-6 font-medium">
+                <span id="fake-break-alert" onclick="showFakeBreakWarning()" class="hidden cursor-pointer flex-1 bg-red-500/10 text-red-400 px-5 py-3 rounded-3xl flex items-center gap-2 alert-pulse">
+                    ⚠️ 無量大噴 • 誘敵假突破 • 不要接刀！
+                </span>
+                <span id="one-wave-alert" class="hidden flex-1 bg-[#c5a05b]/10 text-[#c5a05b] px-5 py-3 rounded-3xl flex items-center gap-2">
+                    🔥 一波流鎖漲停 • 主力點火徵兆
+                </span>
+                <span class="text-xs text-gray-400" id="chart-footer-time">目前時間 2026/05/15 盤後 • 歷史數據已載入</span>
+            </section>
+        </section>
+
+        <aside class="w-80 border-l border-[#c5a05b]/20 bg-[#111113] flex flex-col">
+            <section class="p-5 border-b border-[#c5a05b]/20 flex items-center gap-3">
+                <span class="w-12 h-12 bg-gradient-to-br from-[#3b82f6] to-[#c5a05b] rounded-3xl flex items-center justify-center text-4xl shadow-2xl ring-4 ring-[#c5a05b]/30">🐯</span>
+                <section>
+                    <p class="text-xl font-bold">然然 AI 戰友</p>
+                    <p class="text-xs text-[#c5a05b]">高標準導師 • 紀律嚴明</p>
+                </section>
+            </section>
+            <section id="ai-bubbles" class="flex-1 p-5 space-y-4 overflow-auto custom-scrollbar"></section>
+            <section class="p-4 border-t border-[#c5a05b]/20">
+                <section class="flex gap-2">
+                    <input id="ai-input" type="text" placeholder="問我任何股票問題..." class="flex-1 bg-[#1a1a2e] border border-[#c5a05b]/30 rounded-3xl px-6 py-4 focus:outline-none text-sm" onkeydown="if(event.key==='Enter') handleAIQuery()">
+                    <button type="button" onclick="handleAIQuery()" class="w-12 h-12 bg-gradient-to-br from-[#c5a05b] to-[#3b82f6] rounded-3xl flex items-center justify-center text-2xl hover:scale-105 transition">🚀</button>
+                </section>
+                <p class="text-center text-[10px] text-gray-500 mt-3">盤前 08:30 自動戰報 • 盤中隨機心法</p>
+            </section>
+        </aside>
+    </main>
+
+    <div id="warning-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 modal-backdrop" onclick="this.classList.add('hidden')">
+        <section id="warning-content" class="bg-[#1a1a2e] border-4 border-red-500 rounded-3xl p-10 text-center max-w-md animate-shake" onclick="event.stopPropagation()">
+            <p class="text-6xl mb-6">🚨</p>
+            <h2 class="text-3xl font-bold text-red-400 mb-4">煥然！停損！</h2>
+            <p class="text-xl">淨損已達 2% • 死命抱緊只會被主力洗掉</p>
+            <p class="mt-8 text-sm text-gray-400">你是三個孩子的榜樣，穩健才是王道</p>
+            <button type="button" onclick="document.getElementById('warning-modal').classList.add('hidden')" class="mt-8 bg-red-500 text-white px-10 py-4 rounded-3xl font-bold hover:bg-red-600 transition">我已執行停損</button>
+        </section>
+    </div>
+    <div id="fake-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 modal-backdrop" onclick="this.classList.add('hidden')">
+        <section class="bg-[#1a1a2e] border-4 border-[#c5a05b] rounded-3xl p-10 text-center max-w-lg" onclick="event.stopPropagation()">
+            <p class="text-6xl mb-4">⚠️</p>
+            <h2 class="text-2xl font-bold text-red-400 mb-4">誘敵假突破偵測</h2>
+            <p class="text-gray-300 leading-relaxed">量縮價漲、無量噴發 — 主力在誘多出貨。煥然，寧可錯過也不要接刀！</p>
+            <button type="button" onclick="document.getElementById('fake-modal').classList.add('hidden')" class="mt-8 bg-[#c5a05b] text-black px-10 py-4 rounded-3xl font-bold">收到，保持紀律</button>
+        </section>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

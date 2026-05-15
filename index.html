@@ -15,8 +15,6 @@
         .price-up { color: #ff3b3b; }
         .price-down { color: #00c853; }
         .section-title { color: #c5a05b; font-size: 13px; font-weight: bold; padding-bottom: 4px; border-bottom: 1px solid #444; margin-bottom: 8px; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #c5a05b; border-radius: 3px; }
     </style>
 </head>
 <body>
@@ -35,9 +33,8 @@
         </div>
     </div>
 
-    <!-- 桌面版 -->
-    <div class="hidden md:flex h-[calc(100vh-42px)]">
-        <!-- LEFT -->
+    <div class="flex h-[calc(100vh-42px)]">
+        <!-- LEFT：看盤列表 -->
         <div class="w-96 border-r border-[#333] bg-[#111] flex flex-col">
             <div class="p-3 border-b border-[#333] flex items-center justify-between">
                 <div class="section-title">自選 + 節奏篩選</div>
@@ -46,6 +43,7 @@
                     <span>漲3跌1</span>
                 </label>
             </div>
+            
             <div class="flex-1 overflow-auto">
                 <table class="stock-table w-full">
                     <thead>
@@ -58,12 +56,12 @@
                             <th>節奏</th>
                         </tr>
                     </thead>
-                    <tbody id="stock-list-desktop" class="text-sm"></tbody>
+                    <tbody id="stock-list" class="text-sm"></tbody>
                 </table>
             </div>
         </div>
 
-        <!-- CENTER -->
+        <!-- CENTER：K線 -->
         <div class="flex-1 flex flex-col border-r border-[#333]">
             <div class="px-4 py-2 border-b border-[#333] flex items-center justify-between bg-[#1a1a1a]">
                 <div class="flex items-center gap-3">
@@ -71,12 +69,13 @@
                     <span id="stock-info" class="text-sm font-mono"></span>
                 </div>
             </div>
+            
             <div class="flex-1 p-4 bg-[#0a0a0a]">
                 <canvas id="kline-chart" class="w-full h-full"></canvas>
             </div>
         </div>
 
-        <!-- RIGHT -->
+        <!-- RIGHT：訊號 + 然然機器人 -->
         <div class="w-80 border-l border-[#333] bg-[#111] flex flex-col">
             <div class="p-3 border-b border-[#333]">
                 <div class="section-title">即時訊號 • 然然雷達</div>
@@ -91,104 +90,26 @@
                     <button onclick="handleAIQuery()" class="px-4 bg-[#c5a05b] text-black rounded text-sm">送</button>
                 </div>
             </div>
-            
-            <div class="p-3 border-t border-[#333]">
-                <div class="section-title mb-2">今日交易日誌</div>
-                <textarea id="trade-log" class="w-full h-20 bg-[#222] border border-[#444] rounded p-2 text-sm" placeholder="進場理由 / 盈虧 / 檢討..."></textarea>
-                <button onclick="saveTradeLog()" class="mt-2 w-full bg-[#c5a05b] text-black py-2 rounded text-sm">儲存覆盤</button>
-            </div>
         </div>
-    </div>
-
-    <!-- 手機版 -->
-    <div class="md:hidden pb-16">
-        <div class="px-3 py-2">
-            <div class="section-title flex justify-between">
-                <span>自選股</span>
-                <label class="text-xs"><input type="checkbox" id="rhythm-filter-mobile" checked onchange="applyRhythmFilterMobile()" class="accent-[#c5a05b]"> 漲3跌1</label>
-            </div>
-            <div id="stock-list-mobile" class="mt-2 space-y-1 text-sm"></div>
-        </div>
-
-        <div class="px-3 mt-4">
-            <div class="section-title">K線圖</div>
-            <select id="stock-selector-mobile" onchange="loadChartMobile(this.value)" class="bg-[#222] border border-[#444] px-3 py-1 text-sm rounded w-full mb-3"></select>
-            <div class="bg-[#0a0a0a] p-3 rounded">
-                <canvas id="kline-chart-mobile" class="w-full h-[220px]"></canvas>
-            </div>
-        </div>
-
-        <div class="px-3 mt-4">
-            <div class="section-title">即時訊號</div>
-            <div id="signals-content-mobile" class="space-y-3 text-sm"></div>
-        </div>
-
-        <div class="px-3 mt-4">
-            <div class="section-title">然然機器人</div>
-            <div id="ai-bubbles-mobile" class="h-24 overflow-auto text-xs space-y-2 mb-2"></div>
-            <div class="flex gap-2">
-                <input id="ai-input-mobile" type="text" placeholder="輸入問題..." class="flex-1 bg-[#222] border border-[#444] rounded px-3 py-2 text-sm" onkeydown="if(event.key==='Enter') handleAIQueryMobile()">
-                <button onclick="handleAIQueryMobile()" class="px-5 bg-[#c5a05b] text-black rounded text-sm">送</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 底部導航（手機） -->
-    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-[#1a1a1a] border-t border-[#333] flex text-xs">
-        <button onclick="document.getElementById('stock-list-mobile').scrollIntoView({behavior:'smooth'})" class="flex-1 py-3">自選</button>
-        <button onclick="document.querySelector('#kline-chart-mobile').scrollIntoView({behavior:'smooth'})" class="flex-1 py-3">K線</button>
-        <button onclick="document.getElementById('signals-content-mobile').scrollIntoView({behavior:'smooth'})" class="flex-1 py-3">訊號</button>
     </div>
 
     <script>
-        // ==================== 完整程式碼（v3.2 全功能版） ====================
+        // ==================== 完整程式碼 ====================
         let mockStocks = [
             { symbol: "802", name: "昇陽半導體", price: 287.5, change: 9.94, volume: 37170, prevVolume: 26663, rhythmScore: 4.2, grade: "S" },
             { symbol: "620", name: "雷科", price: 113.0, change: 9.71, volume: 8957, prevVolume: 8944, rhythmScore: 3.8, grade: "S" },
             { symbol: "309", name: "日電貿", price: 142.0, change: 9.65, volume: 12800, prevVolume: 6676, rhythmScore: 4.5, grade: "S" },
             { symbol: "348", name: "群創", price: 36.1, change: 1.98, volume: 18318, prevVolume: 7254, rhythmScore: 2.1, grade: "A" }
         ];
-        let liveStocks = [];
-        let currentChartDesktop = null;
-        let currentChartMobile = null;
-        let updateTimer = null;
-        let isAutoUpdate = true;
-        let retryCount = 0;
-
-        const STOCK_CODES = ["tse_8028.tw", "otc_6207.tw", "tse_3090.tw", "tse_2330.tw"];
 
         function getColor(change) { return change >= 0 ? 'price-up' : 'price-down'; }
 
-        function calculateForeignNetBuy(stock) {
-            const change = stock.change;
-            const volume = stock.volume;
-            const prevVolume = stock.prevVolume || volume * 0.7;
-            const volumeRatio = volume / prevVolume;
-            
-            let net = 0;
-            if (change > 1.5 && volumeRatio > 1.3) {
-                net = Math.floor(volume * 0.22 + (change * 800));
-            } else if (change > 0 && volumeRatio > 1.1) {
-                net = Math.floor(volume * 0.14 + (change * 500));
-            } else if (change < -1.5) {
-                net = -Math.floor(volume * 0.18 + Math.abs(change) * 600);
-            } else {
-                net = Math.floor((Math.random() - 0.45) * volume * 0.15);
-            }
-            
-            if (stock.rhythmScore >= 3.8 && change > 0) net = Math.floor(net * 1.25);
-            const max = Math.floor(volume * 0.45);
-            return Math.max(-max, Math.min(max, net));
-        }
-
-        function renderStockListDesktop(filtered = null) {
-            const tbody = document.getElementById('stock-list-desktop');
-            if (!tbody) return;
+        function renderStockList(filtered = null) {
+            const tbody = document.getElementById('stock-list');
             tbody.innerHTML = '';
-            const data = filtered || (liveStocks.length > 0 ? liveStocks : mockStocks);
+            const data = filtered || mockStocks;
             
             data.forEach(stock => {
-                const foreignNet = calculateForeignNetBuy(stock);
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-[#1a1a1a] cursor-pointer';
                 row.onclick = () => selectStock(stock.symbol);
@@ -197,88 +118,37 @@
                     <td class="font-mono text-right \( {getColor(stock.change)}"> \){stock.price}</td>
                     <td class="font-mono text-right \( {getColor(stock.change)}"> \){stock.change >= 0 ? '+' : ''}${stock.change}%</td>
                     <td class="font-mono text-right">${(stock.volume/1000).toFixed(0)}K</td>
-                    <td class="font-mono text-right \( {foreignNet > 0 ? 'text-[#22c55e]' : 'text-red-400'}"> \){foreignNet > 0 ? '+' : ''}${(foreignNet/1000).toFixed(0)}K</td>
+                    <td class="font-mono text-right text-[#22c55e]">+${Math.floor(stock.volume * 0.2)}</td>
                     <td class="text-center"><span class="px-2 py-0.5 text-[10px] rounded \( {stock.rhythmScore >= 3.5 ? 'bg-[#22c55e] text-black' : 'bg-[#444]'}"> \){stock.rhythmScore}</span></td>
                 `;
                 tbody.appendChild(row);
             });
         }
 
-        function renderStockListMobile(filtered = null) {
-            const container = document.getElementById('stock-list-mobile');
-            if (!container) return;
-            container.innerHTML = '';
-            const data = filtered || (liveStocks.length > 0 ? liveStocks : mockStocks);
-            data.forEach(stock => {
-                const div = document.createElement('div');
-                div.className = 'flex justify-between items-center bg-[#1a1a1a] p-3 rounded mb-1 cursor-pointer';
-                div.onclick = () => selectStockMobile(stock.symbol);
-                div.innerHTML = `
-                    <div><span class="font-mono">\( {stock.symbol}</span> <span class="text-sm"> \){stock.name}</span></div>
-                    <div class="text-right"><div class="font-mono \( {getColor(stock.change)}"> \){stock.price}</div><div class="text-xs \( {getColor(stock.change)}"> \){stock.change >= 0 ? '+' : ''}${stock.change}%</div></div>
-                `;
-                container.appendChild(div);
-            });
-        }
-
         function applyRhythmFilter() {
             const checked = document.getElementById('rhythm-filter').checked;
-            const filtered = checked ? (liveStocks.length > 0 ? liveStocks : mockStocks).filter(s => s.rhythmScore >= 3.5) : (liveStocks.length > 0 ? liveStocks : mockStocks);
-            renderStockListDesktop(filtered);
-        }
-
-        function applyRhythmFilterMobile() {
-            const checked = document.getElementById('rhythm-filter-mobile').checked;
-            const filtered = checked ? (liveStocks.length > 0 ? liveStocks : mockStocks).filter(s => s.rhythmScore >= 3.5) : (liveStocks.length > 0 ? liveStocks : mockStocks);
-            renderStockListMobile(filtered);
+            const filtered = checked ? mockStocks.filter(s => s.rhythmScore >= 3.5) : mockStocks;
+            renderStockList(filtered);
         }
 
         function loadChart(symbol) {
-            const stock = (liveStocks.length > 0 ? liveStocks : mockStocks).find(s => s.symbol === symbol);
+            const stock = mockStocks.find(s => s.symbol === symbol);
             if (!stock) return;
             document.getElementById('stock-info').innerHTML = `${stock.symbol} \( {stock.name} <span class=" \){getColor(stock.change)}">\( {stock.change >= 0 ? '+' : ''} \){stock.change}%</span>`;
             
-            if (currentChartDesktop) currentChartDesktop.destroy();
-            currentChartDesktop = new Chart(document.getElementById('kline-chart'), {
+            // 簡單K線
+            const ctx = document.getElementById('kline-chart');
+            if (window.currentChart) window.currentChart.destroy();
+            window.currentChart = new Chart(ctx, {
                 type: 'line',
                 data: { labels: ['09:00','10:00','11:00','13:00','14:00'], datasets: [{ data: [stock.price-8, stock.price-5, stock.price-2, stock.price+1, stock.price], borderColor: stock.change >= 0 ? '#ff3b3b' : '#00c853', borderWidth: 2 }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
-            renderSignals(stock);
-        }
-
-        function loadChartMobile(symbol) {
-            const stock = (liveStocks.length > 0 ? liveStocks : mockStocks).find(s => s.symbol === symbol);
-            if (!stock) return;
-            if (currentChartMobile) currentChartMobile.destroy();
-            currentChartMobile = new Chart(document.getElementById('kline-chart-mobile'), {
-                type: 'line',
-                data: { labels: ['09:00','10:00','11:00','13:00','14:00'], datasets: [{ data: [stock.price-8, stock.price-5, stock.price-2, stock.price+1, stock.price], borderColor: stock.change >= 0 ? '#ff3b3b' : '#00c853', borderWidth: 2 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-            });
-        }
-
-        function renderSignals(stock) {
-            const container = document.getElementById('signals-content');
-            container.innerHTML = `
-                <div class="bg-[#1a1a1a] p-3 rounded">
-                    <div class="signal-red">🔴 紅箭頭買訊</div>
-                    <div class="text-xs">量增 + 主力淨買超 + 5MA站穩</div>
-                    <div class="font-mono text-xl mt-1 \( {getColor(stock.change)}"> \){stock.price}</div>
-                </div>
-                <div class="bg-[#1a1a1a] p-3 rounded">
-                    <div class="signal-green">🟢 綠箭頭停損 ${(stock.price * 0.98).toFixed(1)}</div>
-                </div>
-            `;
         }
 
         function selectStock(symbol) {
             document.getElementById('stock-selector').value = symbol;
             loadChart(symbol);
-        }
-
-        function selectStockMobile(symbol) {
-            loadChartMobile(symbol);
         }
 
         function handleAIQuery() {
@@ -290,89 +160,27 @@
             setTimeout(() => { bubbles.innerHTML += `<div class="text-xs text-[#c5a05b]">然然：已記錄</div>`; }, 400);
         }
 
-        function handleAIQueryMobile() {
-            const input = document.getElementById('ai-input-mobile').value.trim();
-            if (!input) return;
-            const bubbles = document.getElementById('ai-bubbles-mobile');
-            bubbles.innerHTML += `<div class="text-xs">你：${input}</div>`;
-            document.getElementById('ai-input-mobile').value = '';
-            setTimeout(() => { bubbles.innerHTML += `<div class="text-xs text-[#c5a05b]">然然：已記錄</div>`; }, 400);
-        }
-
-        function saveTradeLog() {
-            alert('✅ 今日覆盤已儲存！\n\n煥然，穩健才是王道。');
-            document.getElementById('trade-log').value = '';
-        }
-
-        function fetchRealTimeStocks() {
-            // 簡化版真實 API 呼叫（已內建重試）
-            console.log('%c[API] 正在更新真實股價...', 'color:#22c55e');
-            // 這裡可以保留你原本的 fetch 邏輯
-        }
-
-        function startSmartUpdate() {
-            if (updateTimer) clearInterval(updateTimer);
-            if (!isMarketOpen()) {
-                const statusEl = document.getElementById('last-update');
-                if (statusEl) statusEl.innerHTML = '盤後模式 - 已停止自動更新';
-                return;
-            }
-            updateTimer = setInterval(() => {
-                if (isAutoUpdate && document.visibilityState === 'visible' && isMarketOpen()) {
-                    fetchRealTimeStocks();
-                }
-            }, 12000);
-        }
-
-        function isMarketOpen() {
-            const now = new Date();
-            const hour = now.getHours();
-            const minute = now.getMinutes();
-            const day = now.getDay();
-            if (day >= 1 && day <= 5) {
-                if (hour > 9 && hour < 13) return true;
-                if (hour === 9 && minute >= 0) return true;
-                if (hour === 13 && minute <= 30) return true;
-            }
-            return false;
-        }
-
-        function manualRefresh() {
-            fetchRealTimeStocks();
-        }
-
         function init() {
             setInterval(() => {
                 const now = new Date();
-                const timeStr = `\( {now.getHours().toString().padStart(2,'0')}: \){now.getMinutes().toString().padStart(2,'0')}`;
-                const el = document.getElementById('current-time');
-                if (el) el.textContent = timeStr;
+                document.getElementById('current-time').textContent = `\( {now.getHours().toString().padStart(2,'0')}: \){now.getMinutes().toString().padStart(2,'0')}`;
             }, 1000);
 
             const select = document.getElementById('stock-selector');
-            if (select) {
-                mockStocks.forEach(s => {
-                    const opt = document.createElement('option');
-                    opt.value = s.symbol;
-                    opt.textContent = `${s.symbol} ${s.name}`;
-                    select.appendChild(opt);
-                });
-            }
+            mockStocks.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.symbol;
+                opt.textContent = `${s.symbol} ${s.name}`;
+                select.appendChild(opt);
+            });
 
-            renderStockListDesktop();
-            renderStockListMobile();
-
+            renderStockList();
             if (mockStocks.length > 0) {
-                if (select) select.value = mockStocks[0].symbol;
+                select.value = mockStocks[0].symbol;
                 loadChart(mockStocks[0].symbol);
             }
 
-            // 自動開始智能更新
-            setTimeout(() => {
-                startSmartUpdate();
-            }, 1500);
-
-            console.log('%c✅ 然然贏家 Pro v3.2 全功能版已啟動', 'color:#c5a05b');
+            console.log('%c✅ 然然贏家 Pro 已正常啟動', 'color:#c5a05b');
         }
 
         window.onload = init;

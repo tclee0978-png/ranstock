@@ -48,6 +48,20 @@ header::after {
     filter: drop-shadow(0 0 20px rgba(197, 160, 91, 0.25));
 }
 
+/* 入場雷達面板 */
+#signal-panel {
+    box-shadow: inset 4px 0 24px rgba(197, 160, 91, 0.06);
+}
+
+#signals-content > div {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+#signals-content > div:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
 /* 即時掃描狀態列 */
 #scan-status {
     animation: statusPulse 2s infinite;

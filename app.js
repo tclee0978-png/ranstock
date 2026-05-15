@@ -1,5 +1,5 @@
-// app.js - 然然贏家 Pro v2.0（即時 + 盤後強化）
-console.log('%c🚀 然然贏家 Pro v2.0 已啟動 • 煥然專屬高勝率系統', 'color:#c5a05b; font-size:18px; font-weight:bold');
+// app.js - 然然贏家 Pro v2.3（紅綠箭頭雷達 + 機器人盯盤）
+console.log('%c🚀 然然贏家 Pro v2.3 已啟動 • 紅箭頭買訊 / 綠箭頭停損', 'color:#c5a05b; font-size:18px; font-weight:bold');
 
 // ==================== v2.0 即時 + 盤後強化 ====================
 let isRealTime = false;
@@ -226,7 +226,7 @@ function init() {
     loadChart('2330');
 
     spawnAIBubble();
-    setInterval(spawnAIBubble, 8000);
+    setInterval(spawnAIBubble, 12000);
 
     schedulePreMarketReport();
     updateWinRate();
@@ -285,7 +285,7 @@ function updateMarketMode() {
         label.textContent = '盤中即時';
         if (dot) { dot.classList.remove('bg-red-500'); dot.classList.add('bg-green-500'); }
         if (status) status.classList.add('market-open');
-        if (chartTitle) chartTitle.textContent = '即時主力佈局分析 • 盤中模式';
+        if (chartTitle) chartTitle.textContent = '技術分析 K線 • 盤中即時';
     } else if (isPreMarket) {
         label.textContent = '盤前備戰';
         if (dot) { dot.classList.remove('bg-green-500'); dot.classList.add('bg-yellow-500'); }
@@ -294,7 +294,7 @@ function updateMarketMode() {
         label.textContent = '盤後模式';
         if (dot) { dot.classList.remove('bg-green-500', 'bg-yellow-500'); dot.classList.add('bg-red-500'); }
         if (status) status.classList.remove('market-open');
-        if (chartTitle) chartTitle.textContent = '歷史主力佈局分析 • 盤後模式';
+        if (chartTitle) chartTitle.textContent = '技術分析 K線 • 盤後模式';
     }
     updateChartFooter();
 }
@@ -391,29 +391,99 @@ function renderStockList(isScanned = false) {
 }
 
 // ==================== 9. 主力行為偵測 ====================
-function resetAlerts() {
-    document.getElementById('fake-break-alert')?.classList.add('hidden');
-    document.getElementById('one-wave-alert')?.classList.add('hidden');
+function getColorClass(change) {
+    return change >= 0 ? 'text-[#ef4444]' : 'text-[#10b981]';
 }
 
 function detectMainForce(stock) {
     if (!stock) return;
-    resetAlerts();
 
-    let statusHTML = '<span class="px-4 py-1 rounded-3xl bg-[#22c55e] text-black">✅ 突破沉澱區</span>';
+    let statusHTML = '<span class="px-3 py-1 rounded-3xl bg-[#22c55e] text-black">✅ 突破沉澱區</span>';
 
     if (stock.isFake) {
-        document.getElementById('fake-break-alert')?.classList.remove('hidden');
-        statusHTML = '<span class="px-4 py-1 rounded-3xl bg-red-500 text-white">⚠️ 誘敵假突破</span>';
+        statusHTML = '<span class="px-3 py-1 rounded-3xl bg-red-500 text-white">⚠️ 誘敵假突破</span>';
     } else if (stock.change >= 5) {
-        document.getElementById('one-wave-alert')?.classList.remove('hidden');
-        statusHTML = '<span class="px-4 py-1 rounded-3xl bg-[#c5a05b] text-black">🔥 一波流鎖單</span>';
+        statusHTML = '<span class="px-3 py-1 rounded-3xl bg-[#c5a05b] text-black">🔥 一波流鎖單</span>';
     }
 
     const statusEl = document.getElementById('main-force-status');
     if (statusEl) {
-        statusEl.innerHTML = statusHTML + ` <span class="ml-2 text-black/80">${stock.force}</span>`;
+        statusEl.innerHTML = statusHTML + ` <span class="text-black/80">${stock.force}</span>`;
     }
+}
+
+// ==================== 紅箭頭買訊 + 綠箭頭停損 ====================
+function renderSignals(stock) {
+    const container = document.getElementById('signals-content');
+    if (!container || !stock) return;
+
+    let html = '';
+
+    if (stock.isFake) {
+        html += `
+        <div class="bg-gradient-to-br from-red-500/10 to-transparent border-2 border-red-500 rounded-3xl p-5 cursor-pointer" onclick="showFakeBreakWarning()">
+            <div class="flex items-center gap-4">
+                <span class="text-5xl">⚠️</span>
+                <div>
+                    <div class="font-bold text-red-400 text-xl">誘敵假突破</div>
+                    <div class="text-xs mt-1">無量大噴 • 不要接刀</div>
+                </div>
+            </div>
+        </div>`;
+    } else if (stock.grade === 'S' && stock.change > 3) {
+        html += `
+        <div class="bg-gradient-to-br from-[#22c55e]/10 to-transparent border-2 border-[#22c55e] rounded-3xl p-5">
+            <div class="flex items-center gap-4">
+                <span class="text-5xl">🔴</span>
+                <div>
+                    <div class="font-bold text-[#22c55e] text-xl">紅箭頭買訊</div>
+                    <div class="text-2xl font-mono">${stock.price}</div>
+                    <div class="text-xs mt-1">主力點火 • 突破沉澱區 • 建議低接</div>
+                </div>
+            </div>
+            <div class="mt-4 text-xs text-[#22c55e]">小教學：破軍七殺最強時機就是這裡，等確認量增再加倉。</div>
+        </div>`;
+    } else if (stock.change >= 5) {
+        html += `
+        <div class="bg-gradient-to-br from-[#c5a05b]/10 to-transparent border-2 border-[#c5a05b] rounded-3xl p-5">
+            <div class="flex items-center gap-4">
+                <span class="text-5xl">🔥</span>
+                <div>
+                    <div class="font-bold text-[#c5a05b] text-xl">一波流鎖漲停</div>
+                    <div class="text-2xl font-mono">${stock.price}</div>
+                    <div class="text-xs mt-1">主力點火徵兆 • 嚴設停損</div>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    html += `
+    <div class="bg-gradient-to-br from-red-500/10 to-transparent border-2 border-red-500 rounded-3xl p-5">
+        <div class="flex items-center gap-4">
+            <span class="text-5xl">🟢</span>
+            <div>
+                <div class="font-bold text-red-400 text-xl">綠箭頭停損</div>
+                <div class="font-mono text-xl">${(stock.price * 0.98).toFixed(0)}</div>
+                <div class="text-xs mt-1">-2% 強制停損 • 保護本金</div>
+            </div>
+        </div>
+        <div class="mt-4 text-xs text-red-400">你是三個孩子的榜樣，絕不死命抱緊。</div>
+    </div>`;
+
+    const watchMsg = Math.random() > 0.5 ? '主力行為正常 • 保持紀律' : '注意量能變化 • 勿 FOMO';
+    html += `
+    <div class="bg-[#1a1a2e] rounded-3xl p-4 text-sm">
+        <div class="flex items-center gap-2 text-[#c5a05b]">
+            <span class="text-xl">🐯</span>
+            <span class="font-medium">然然機器人盯盤中...</span>
+        </div>
+        <div class="mt-3 text-xs leading-relaxed text-gray-300">
+            ${stock.force}<br>
+            ${watchMsg}
+        </div>
+    </div>`;
+
+    container.innerHTML = html;
 }
 
 function showFakeBreakWarning() {
@@ -421,19 +491,33 @@ function showFakeBreakWarning() {
     addAIBubble('煥然！這是無量假突破，主力在誘多。不要接刀，等回踩再說！', true);
 }
 
-// ==================== 10. K 線圖 ====================
+// ==================== 10. K 線圖（v2.3 清楚簡潔版） ====================
 function loadChart(symbol) {
     selectedSymbol = symbol;
-    const data = mockHistoricalData[symbol] || mockHistoricalData['2330'];
+    const selectedStock = mockStocks.find(s => s.symbol === symbol);
+    if (!selectedStock) return;
+
+    const badge = document.getElementById('stock-name-badge');
+    if (badge) {
+        const sign = selectedStock.change >= 0 ? '+' : '';
+        badge.innerHTML = `${selectedStock.symbol} ${selectedStock.name} <span class="${getColorClass(selectedStock.change)}">${sign}${selectedStock.change}%</span>`;
+    }
+
+    const hist = mockHistoricalData[symbol] || mockHistoricalData['2330'];
+    const data = hist
+        ? { labels: hist.labels, prices: hist.prices, ma5: hist.ma5 }
+        : {
+            labels: LABELS,
+            prices: [selectedStock.price * 0.97, selectedStock.price * 0.99, selectedStock.price * 0.98, selectedStock.price, selectedStock.price * 1.01, selectedStock.price],
+            ma5: [selectedStock.ma5, selectedStock.ma5, selectedStock.ma5, selectedStock.ma5, selectedStock.ma5, selectedStock.ma5]
+        };
 
     if (currentChart) currentChart.destroy();
 
     const ctx = document.getElementById('kline-chart');
-    if (!ctx || !data) return;
+    if (!ctx) return;
 
-    const volumeColors = data.volumes.map((v, i) =>
-        i > 0 && v > data.volumes[i - 1] ? 'rgba(34, 197, 94, 0.7)' : 'rgba(239, 68, 68, 0.5)'
-    );
+    const lineColor = selectedStock.change >= 0 ? '#ef4444' : '#10b981';
 
     currentChart = new Chart(ctx, {
         type: 'line',
@@ -443,49 +527,29 @@ function loadChart(symbol) {
                 {
                     label: '股價',
                     data: data.prices,
-                    borderColor: '#c5a05b',
-                    backgroundColor: 'rgba(197, 160, 91, 0.08)',
-                    fill: true,
-                    borderWidth: 3,
-                    tension: 0.2,
-                    pointRadius: 4,
-                    pointBackgroundColor: '#c5a05b',
-                    yAxisID: 'y'
+                    borderColor: lineColor,
+                    borderWidth: 5,
+                    tension: 0.15,
+                    pointRadius: 0,
+                    fill: false
                 },
                 {
                     label: '5MA',
                     data: data.ma5,
                     borderColor: '#3b82f6',
                     borderWidth: 2,
-                    borderDash: [5, 5],
+                    borderDash: [6, 3],
                     tension: 0.1,
-                    pointRadius: 0,
-                    yAxisID: 'y'
-                },
-                {
-                    type: 'bar',
-                    label: '成交量',
-                    data: data.volumes,
-                    backgroundColor: volumeColors,
-                    yAxisID: 'y1',
-                    barThickness: 14,
-                    borderRadius: 4
+                    pointRadius: 0
                 }
             ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
             plugins: {
-                legend: {
-                    display: true,
-                    position: 'top',
-                    labels: { color: '#c5a05b', font: { size: 13 }, usePointStyle: true }
-                },
+                legend: { labels: { color: '#c5a05b', font: { size: 12 } } },
                 tooltip: {
-                    mode: 'index',
-                    intersect: false,
                     backgroundColor: '#1a1a2e',
                     borderColor: '#c5a05b',
                     borderWidth: 1,
@@ -494,15 +558,14 @@ function loadChart(symbol) {
                 }
             },
             scales: {
-                y: { position: 'left', grid: { color: '#222' }, ticks: { color: '#c5a05b' } },
-                y1: { position: 'right', grid: { display: false }, ticks: { color: '#22c55e', maxTicksLimit: 4 } },
+                y: { grid: { color: '#222' }, ticks: { color: '#c5a05b' } },
                 x: { grid: { color: '#222' }, ticks: { color: '#c5a05b' } }
             }
         }
     });
 
-    const selectedStock = mockStocks.find(s => s.symbol === symbol);
     detectMainForce(selectedStock);
+    renderSignals(selectedStock);
     renderStockList();
     const sel = document.getElementById('stock-selector');
     if (sel) sel.value = symbol;
@@ -574,27 +637,39 @@ function triggerStopLossWarning() {
     addAIBubble('煥然！2% 停損是鐵律。執行了嗎？你是三個孩子的榜樣！', true);
 }
 
-// ==================== 12. AI 戰友 ====================
+// ==================== 12. 然然機器人 AI（少講話版） ====================
 function addAIBubble(text, isAI = true) {
     const container = document.getElementById('ai-bubbles');
     if (!container) return;
 
     const bubble = document.createElement('div');
     if (isAI) {
-        bubble.className = 'bubble bg-gradient-to-r from-[#1a1a2e] to-[#25253a] border border-[#c5a05b]/30 p-4 rounded-3xl max-w-[85%] ml-auto text-sm shadow-xl';
-        bubble.innerHTML = `<div class="flex items-start gap-3"><div class="text-2xl">🐯</div><div style="white-space:pre-wrap">${text}</div></div>`;
+        bubble.className = 'bubble bg-[#1a1a2e] border border-[#c5a05b]/40 p-3 rounded-3xl text-sm max-w-[90%] ml-auto';
+        bubble.innerHTML = `<span class="text-[#c5a05b]">🐯 然然：</span> ${text}`;
     } else {
-        bubble.className = 'bubble bg-[#3b82f6]/10 p-4 rounded-3xl max-w-[75%] mr-auto text-sm';
-        bubble.innerHTML = `<div class="italic">${text}</div>`;
+        bubble.className = 'bubble bg-[#3b82f6]/10 p-3 rounded-3xl text-sm max-w-[70%] mr-auto';
+        bubble.textContent = text;
     }
     container.appendChild(bubble);
     container.scrollTop = container.scrollHeight;
-    while (container.children.length > 12) container.removeChild(container.children[0]);
+    while (container.children.length > 10) container.removeChild(container.children[0]);
 }
 
 function spawnAIBubble() {
-    const quote = coreQuotes[Math.floor(Math.random() * coreQuotes.length)];
-    addAIBubble(quote, true);
+    if (Math.random() > 0.7) return;
+
+    const container = document.getElementById('ai-bubbles');
+    if (!container) return;
+
+    const shortQuotes = ['記住 2% 停損', '等回踩再進', '你是榜樣', '穩健才是王道'];
+    const quote = shortQuotes[Math.floor(Math.random() * shortQuotes.length)];
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble bg-[#1a1a2e] border border-[#c5a05b]/40 p-3 rounded-3xl text-sm';
+    bubble.innerHTML = `<span class="text-[#c5a05b]">🐯 然然：</span> ${quote}`;
+    container.appendChild(bubble);
+    container.scrollTop = container.scrollHeight;
+    while (container.children.length > 10) container.removeChild(container.children[0]);
 }
 
 function handleAIQuery() {
@@ -602,34 +677,34 @@ function handleAIQuery() {
     const input = inputEl?.value.trim();
     if (!input) return;
 
-    addAIBubble(input, false);
+    const container = document.getElementById('ai-bubbles');
+    if (!container) return;
+
+    const userBubble = document.createElement('div');
+    userBubble.className = 'bubble bg-[#3b82f6]/10 p-3 rounded-3xl text-sm max-w-[70%] mr-auto';
+    userBubble.textContent = input;
+    container.appendChild(userBubble);
+    container.scrollTop = container.scrollHeight;
     inputEl.value = '';
 
     setTimeout(() => {
-        let reply = '煥然，記住：FOMO 是最大的敵人。紀律 > 情緒。';
-        const q = input.toLowerCase();
-
-        if (input.includes('追') || input.includes('噴') || input.includes('漲停')) {
-            reply = '大噴後再追就是接刀！我們在陷阱邊等回踩，不當接刀俠。';
-        } else if (input.includes('停損') || input.includes('虧') || input.includes('賠')) {
-            reply = '2% 就停損！你不是廢物，你是三個孩子的榜樣。穩健才是王道。';
-        } else if (input.includes('買') || input.includes('進場')) {
-            const stock = mockStocks.find(s => input.includes(s.symbol) || input.includes(s.name));
-            reply = stock
-                ? (stock.isFake ? `${stock.name}：⚠️ 誘敵假突破，不要進！` : `${stock.name}：${stock.grade}級 • ${stock.force}。符合紀律可觀察，停損 2% 必設。`)
-                : '進場前三問：量增嗎？站穩 5MA 嗎？是 S 級嗎？缺一不做。';
-        } else if (input.includes('賣') || input.includes('出')) {
-            reply = '獲利了？分批出場鎖利。虧損了？2% 停損不要猶豫。';
-        } else if (input.includes('台積') || input.includes('2330')) {
-            reply = '2330 台積電：S級標的，10日沉澱後爆量突破。但記得設停損！';
-        } else if (q.includes('勝率') || input.includes('99')) {
-            reply = '99% 勝率來自風控，不是每單都贏。寧可錯過，不扛下殺。';
-        } else if (input.includes('即時') || input.includes('API')) {
-            reply = isRealTime ? '即時模式運作中，每 15 秒更新 TWSE 快照。' : '點上方「切換即時掃描」啟動盤中模式。';
+        let reply;
+        if (input.includes('停損') || input.includes('虧')) {
+            reply = '2% 停損已設定';
+        } else if (input.includes('買') || input.includes('進')) {
+            reply = '等確認再行動';
+        } else {
+            const replies = ['收到 • 盯盤中', '已記錄 • 勿追高', '2% 停損已設定', '等確認再行動'];
+            reply = replies[Math.floor(Math.random() * replies.length)];
         }
 
-        addAIBubble(reply, true);
-    }, 1500);
+        const aiBubble = document.createElement('div');
+        aiBubble.className = 'bubble bg-[#1a1a2e] border border-[#c5a05b]/40 p-3 rounded-3xl text-sm max-w-[80%] ml-auto';
+        aiBubble.innerHTML = `<span class="text-[#c5a05b]">🐯 然然機器人：</span> ${reply}`;
+        container.appendChild(aiBubble);
+        container.scrollTop = container.scrollHeight;
+        while (container.children.length > 10) container.removeChild(container.children[0]);
+    }, 800);
 }
 
 // ==================== 13. 啟動 ====================

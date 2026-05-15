@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>然然贏家 Pro • 煥然決策艙</title>
+    <title>然然贏家 Pro • 實戰監控艙</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
@@ -13,10 +13,8 @@
         .price-up { color: var(--red); }
         .price-down { color: var(--green); }
         .section-title { color: var(--gold); font-size: 13px; font-weight: bold; padding-bottom: 4px; border-bottom: 1px solid #444; margin-bottom: 8px; }
-        /* 閃紅燈動畫 */
         @keyframes red-alert { from { background: rgba(255, 59, 59, 0.1); } to { background: rgba(255, 59, 59, 0.4); } }
         .action-red-alert { animation: red-alert 0.4s infinite alternate; border: 2px solid var(--red) !important; }
-        /* 戰術彈窗 */
         #tactical-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 100; background: rgba(10,10,10,0.95); border: 2px solid var(--gold); box-shadow: 0 0 50px rgba(197, 160, 91, 0.5); padding: 30px; border-radius: 12px; display: none; text-align: center; width: 320px; }
     </style>
 </head>
@@ -26,17 +24,15 @@
         <div class="flex items-center gap-6">
             <div class="text-xl font-black italic tracking-tighter text-white">然然贏家 <span class="text-[var(--gold)]">Pro</span></div>
             <div class="hidden md:flex gap-4 text-xs border-l border-gray-700 pl-4">
-                <div>台指夜盤 <span class="text-[var(--red)]">+128</span></div>
-                <div>美股費半 <span class="text-[var(--red)]">+1.2%</span></div>
-                <div>今日戰略：<span class="text-white">回踩 5MA 守穩即上車</span></div>
+                <div id="market-status">台股大盤: <span class="text-[var(--red)]">同步中...</span></div>
+                <div>今日戰略：<span class="text-white">主力成本區不破，HODL 抱緊</span></div>
             </div>
         </div>
         <div class="flex items-center gap-4">
             <span id="current-time" class="font-mono text-[var(--gold)] font-bold"></span>
             <div class="flex bg-[#222] rounded px-2 py-1 text-[10px] gap-2">
-                <span>證交稅: 0.15% (當沖)</span>
-                <span class="text-gray-500">|</span>
-                <span>手續費: 0.1425%</span>
+                <input type="text" id="stock-search" placeholder="輸入代號(如2337)" class="bg-transparent border-none outline-none w-20 text-white">
+                <button onclick="changeStock()" class="text-[var(--gold)] font-bold">追蹤</button>
             </div>
         </div>
     </div>
@@ -44,17 +40,16 @@
     <div class="flex flex-1 overflow-hidden">
         <div class="w-80 border-r border-[#333] bg-[#111] flex flex-col">
             <div class="p-3 bg-[#1a1a1a] flex justify-between items-center">
-                <span class="section-title m-0 border-0">🎯 S級獵殺清單</span>
-                <span class="text-[10px] text-gray-500">每 5 秒同步</span>
+                <span class="section-title m-0 border-0">🎯 S級監控清單</span>
+                <span class="text-[9px] text-[var(--green)]">LIVE</span>
             </div>
             <div class="flex-1 overflow-auto">
                 <table class="w-full text-xs">
                     <thead class="sticky top-0 bg-[#111] text-gray-500 text-left">
                         <tr>
-                            <th class="p-2">標的/龍頭</th>
+                            <th class="p-2">標的</th>
                             <th class="p-2 text-right">現價</th>
                             <th class="p-2 text-right">漲跌%</th>
-                            <th class="p-2 text-center">評級</th>
                         </tr>
                     </thead>
                     <tbody id="stock-list"></tbody>
@@ -64,19 +59,15 @@
 
         <div class="flex-1 flex flex-col bg-[#050505] relative">
             <div id="chart-overlay" class="absolute top-4 right-4 z-10 p-3 bg-black/60 border border-gray-800 rounded">
-                <div class="text-[var(--gold)] text-xs font-bold mb-1">成本計算 (淨利)</div>
+                <div class="text-[var(--gold)] text-xs font-bold mb-1">財務試算 (淨利)</div>
                 <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px]">
                     <span class="text-gray-400">保本價：</span><span id="calc-even" class="text-white">--</span>
-                    <span class="text-gray-400">停損(-2%)：</span><span id="calc-stop" class="text-[var(--red)]">--</span>
-                    <span class="text-gray-400">目標(+3%)：</span><span id="calc-target" class="text-[var(--green)]">--</span>
+                    <span class="text-gray-400">停損點：</span><span id="calc-stop" class="text-[var(--red)]">--</span>
+                    <span class="text-gray-400">目標位：</span><span id="calc-target" class="text-[var(--green)]">--</span>
                 </div>
             </div>
             <div class="px-6 py-4 flex items-center justify-between">
-                <h2 id="focus-stock" class="text-xl font-bold">--</h2>
-                <div class="flex gap-2">
-                    <button class="px-3 py-1 bg-[#222] rounded text-xs">5分K</button>
-                    <button class="px-3 py-1 bg-[#222] rounded text-xs">日線</button>
-                </div>
+                <h2 id="focus-stock" class="text-xl font-bold">等待啟動...</h2>
             </div>
             <div class="flex-1 p-4">
                 <canvas id="kline-chart"></canvas>
@@ -93,17 +84,11 @@
                 </label>
             </div>
             
-            <div class="flex-1 p-4 overflow-auto space-y-4" id="ai-logs">
-                <div class="text-[10px] text-gray-500">系統初始化... 準備掃描主力成本</div>
-            </div>
+            <div class="flex-1 p-4 overflow-auto space-y-2 text-[10px]" id="ai-logs"></div>
 
             <div class="p-4 bg-[#0a0a0a] border-t border-[#333]" id="robot-card">
-                <div class="flex items-center gap-3 mb-2">
-                    <div class="w-8 h-8 bg-[var(--gold)] rounded-full flex items-center justify-center text-black font-bold">煥</div>
-                    <div class="text-xs font-bold text-[var(--gold)]">煥然 AI 戰略官</div>
-                </div>
                 <div id="ai-bubble" class="text-xs bg-[#1a1a1a] p-3 rounded-lg border border-gray-800 leading-relaxed">
-                    煥然，盯盤中。若偵測到 S 級回踩訊號，我會立即閃紅燈通知你。
+                    煥然，我正在透過中繼站抓取即時數據。這比模擬的更危險，但也更真實。
                 </div>
             </div>
         </div>
@@ -113,68 +98,77 @@
         <div class="text-5xl font-black text-[var(--red)] mb-2">S</div>
         <div class="text-[var(--gold)] font-bold mb-4">AI 上車訊號發動</div>
         <div id="pop-name" class="text-xl font-bold text-white mb-2">--</div>
-        <div class="text-xs text-gray-400 mb-6">符合 5MA 鐵律，且主力籌碼沉澱完成。</div>
-        <button onclick="closePopup()" class="w-full py-3 bg-[var(--gold)] text-black font-black rounded-lg">立刻執行 (已設停損)</button>
+        <button onclick="closePopup()" class="w-full py-3 bg-[var(--gold)] text-black font-black rounded-lg">收到，嚴守紀律</button>
     </div>
 
     <script>
-        const industryLeaders = { "8390": "金屬回收", "2337": "ROM龍頭", "2330": "半導體", "2454": "IC設計" };
-        let mockStocks = [
-            { symbol: "8390", name: "金益鼎", price: 121.0, change: 9.01, grade: "S", isLeader: true },
-            { symbol: "2337", name: "旺宏", price: 32.5, change: 3.2, grade: "A", isLeader: true },
-            { symbol: "2330", name: "台積電", price: 1045.0, change: 1.5, grade: "B", isLeader: true },
-            { symbol: "3054", name: "立萬利", price: 68.2, change: -1.2, grade: "C", isLeader: false }
-        ];
+        let currentStock = "8390";
+        let historyData = [];
 
-        function calculateCost(price) {
-            const tax = 0.0015; // 當沖減半
-            const fee = 0.001425 * 2; // 來回
-            const even = price * (1 + tax + fee);
-            return {
-                even: even.toFixed(2),
-                stop: (price * 0.98).toFixed(2),
-                target: (price * 1.05).toFixed(2)
-            };
+        async function fetchLive() {
+            const url = `https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_${currentStock}.tw|otc_${currentStock}.tw`;
+            const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+            
+            try {
+                const res = await fetch(proxy);
+                const json = await res.json();
+                const data = JSON.parse(json.contents).msgArray[0];
+                if (data) {
+                    const price = parseFloat(data.z) || parseFloat(data.y);
+                    const open = parseFloat(data.o) || price;
+                    const change = ((price - parseFloat(data.y)) / parseFloat(data.y)) * 100;
+                    
+                    updateUI(data.n, price, change);
+                    if (change > 5) triggerS(data.n);
+                }
+            } catch (e) { addLog("數據同步中...", "gray"); }
         }
 
-        function renderList() {
-            const list = document.getElementById('stock-list');
-            list.innerHTML = '';
-            mockStocks.forEach(s => {
-                const row = document.createElement('tr');
-                row.className = 'border-b border-[#222] hover:bg-[#1a1a1a] cursor-pointer';
-                row.onclick = () => selectStock(s.symbol);
-                row.innerHTML = `
-                    <td class="p-2">
-                        <div class="font-bold text-white">${s.name}</div>
-                        <div class="text-[9px] text-gray-500">${s.symbol} ${industryLeaders[s.symbol] ? '• 龍頭' : ''}</div>
-                    </td>
-                    <td class="p-2 text-right font-mono ${s.change >= 0 ? 'text-[var(--red)]' : 'text-[var(--green)]'}">${s.price}</td>
-                    <td class="p-2 text-right font-mono ${s.change >= 0 ? 'text-[var(--red)]' : 'text-[var(--green)]'}">${s.change}%</td>
-                    <td class="p-2 text-center"><span class="px-2 py-0.5 rounded-sm bg-gray-800 font-black ${s.grade=='S'?'text-[var(--gold)]':''}">${s.grade}</span></td>
-                `;
-                list.appendChild(row);
+        function updateUI(name, price, change) {
+            document.getElementById('focus-stock').innerText = `${name} (${currentStock}) - 現價: ${price}`;
+            const cost = price * 1.0045; // 估算含稅成本
+            document.getElementById('calc-even').innerText = cost.toFixed(2);
+            document.getElementById('calc-stop').innerText = (price * 0.98).toFixed(2);
+            document.getElementById('calc-target').innerText = (price * 1.05).toFixed(2);
+            
+            historyData.push(price);
+            if (historyData.length > 20) historyData.shift();
+            drawChart(change >= 0);
+            addLog(`${name} 價格更新: ${price} (${change.toFixed(2)}%)`, change >= 0 ? "red" : "green");
+        }
+
+        function drawChart(isUp) {
+            const ctx = document.getElementById('kline-chart');
+            if (window.myChart) window.myChart.destroy();
+            window.myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array(historyData.length).fill(''),
+                    datasets: [{
+                        data: historyData,
+                        borderColor: isUp ? '#ff3b3b' : '#00c853',
+                        borderWidth: 2, tension: 0.4, pointRadius: 0
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#222' } } } }
             });
         }
 
-        function selectStock(symbol) {
-            const s = mockStocks.find(x => x.symbol === symbol);
-            document.getElementById('focus-stock').innerText = `${s.name} (${s.symbol})`;
-            const costs = calculateCost(s.price);
-            document.getElementById('calc-even').innerText = costs.even;
-            document.getElementById('calc-stop').innerText = costs.stop;
-            document.getElementById('calc-target').innerText = costs.target;
-            
-            // 如果是 S 級，觸發警報
-            if(s.grade === 'S') triggerS(s.name);
-            updateChart(s.change >= 0);
+        function addLog(msg, color) {
+            const logs = document.getElementById('ai-logs');
+            logs.innerHTML = `<div style="color:${color}">[${new Date().toLocaleTimeString()}] ${msg}</div>` + logs.innerHTML;
+        }
+
+        function changeStock() {
+            currentStock = document.getElementById('stock-search').value;
+            historyData = [];
+            fetchLive();
         }
 
         function triggerS(name) {
             document.getElementById('tactical-popup').style.display = 'block';
             document.getElementById('pop-name').innerText = name;
             document.getElementById('robot-card').classList.add('action-red-alert');
-            document.getElementById('ai-bubble').innerText = `🔥 火速上車！${name} 符合 S 級突破戰術，主力成本已鎖定。`;
         }
 
         function closePopup() {
@@ -182,32 +176,12 @@
             document.getElementById('robot-card').classList.remove('action-red-alert');
         }
 
-        function updateChart(isUp) {
-            const ctx = document.getElementById('kline-chart');
-            if (window.myChart) window.myChart.destroy();
-            window.myChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: Array(20).fill(''),
-                    datasets: [{
-                        data: Array.from({length: 20}, () => Math.random() * 10 + 100),
-                        borderColor: isUp ? '#ff3b3b' : '#00c853',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2,
-                        tension: 0.4
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#222' } } } }
-            });
-        }
-
         window.onload = () => {
             setInterval(() => {
-                const now = new Date();
-                document.getElementById('current-time').innerText = now.toLocaleTimeString();
-            }, 1000);
-            renderList();
-            selectStock("8390");
+                document.getElementById('current-time').innerText = new Date().toLocaleTimeString();
+                fetchLive();
+            }, 10000);
+            fetchLive();
         };
     </script>
 </body>

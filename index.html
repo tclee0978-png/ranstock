@@ -37,7 +37,13 @@
         </section>
     </header>
 
-    <main class="flex h-[calc(100vh-73px)]">
+    <div id="scan-status" class="px-6 py-2 bg-[#1a1a2e] text-xs font-mono flex items-center justify-between border-b border-[#c5a05b]/30">
+        <span>🔄 掃描模式：<span id="mode-text">盤後歷史模式</span></span>
+        <span id="last-update" class="text-[#c5a05b]">上次更新：--</span>
+        <button type="button" onclick="toggleRealTime()" class="bg-[#c5a05b] text-black px-5 py-1 rounded-3xl text-sm font-bold hover:brightness-110 transition">切換即時掃描</button>
+    </motion>
+
+    <main class="flex h-[calc(100vh-73px-40px)]">
         <aside class="w-80 border-r border-[#c5a05b]/20 bg-[#111113] flex flex-col">
             <section class="p-5 border-b border-[#c5a05b]/20">
                 <section class="flex justify-between items-center mb-4">
